@@ -1,0 +1,38 @@
+.content-big.page {
+  position: relative;
+}
+
+#__beecatalyst-container-beecatalyst__ {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  padding-right: 20px;
+}
+
+.blocks > div:first-child {
+  transition: all 200ms ease;
+}
+
+.blocks > div:last-child {
+  transition: all 200ms ease;
+}
+
+.blocks.__beecatalyst-focus {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.blocks.__beecatalyst-focus > div:first-child {
+  width: 100%;
+}
+
+.blocks.__beecatalyst-focus > div:last-child {
+  width: 0;
+  opacity: 0;
+  visibility: hidden;
+  margin: 0;
+}

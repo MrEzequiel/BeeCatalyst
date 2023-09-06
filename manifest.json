@@ -7,5 +7,16 @@
     "default_popup": "popup/popup.html",
     "default_icon": "images/icon.png"
   },
-  "permissions": ["activeTab", "scripting"]
+  "content_scripts": [
+    {
+      "matches": ["https://www.beecrowd.com.br/**"],
+      "css": ["./styles/main.css"],
+      "js": ["./scripts/main.js"],
+      "match_about_blank": false
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["activeTab"]
 }
