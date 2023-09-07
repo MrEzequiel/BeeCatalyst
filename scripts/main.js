@@ -56,6 +56,11 @@ class Extension {
         }
 
         #__beecatalyst-button {
+          border: #bbb solid 1px;
+          border-radius: 3px;
+          font-size: 8px;
+          padding: 4px 8px;
+          text-transform: uppercase;
           position: absolute;
           right: 4px;
           top: 4px;
@@ -64,9 +69,15 @@ class Extension {
           justify-content: end;
           cursor: pointer;
           font-size: 12px;
-          transition: all 200ms ease;
           opacity: 0;
           transform: scale(0.9);
+          transition: all 200ms ease;
+        }
+
+        #__beecatalyst-button:hover {
+          background-color: rgb(82, 29, 105);
+          border-color: rgb(125, 44, 161);
+          color: rgb(232, 230, 227);
         }
       `;
       iframe.contentDocument.body.append(styles);
