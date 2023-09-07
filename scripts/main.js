@@ -6,31 +6,34 @@ class Extension {
   }
 
   createContainer() {
-    const container = document.createElement("div");
-    container.id = "__beecatalyst-container-beecatalyst__";
-    container.innerHTML = `
-      <input type="checkbox" id="focus" name="focus" />
-      <label for="focus">Focus</label>
-    `;
+    const container = document.createElement("a");
+    container.role = "button";
+    container.id = "__beecatalyst-container";
+    container.innerText = "Focus Mode";
     return container;
   }
 
   updateFocusMode() {
-    document.querySelector("#focus").checked = this.isFocusMode;
+    if (this.isFocusMode) {
+      this.container.classList.add("active");
+    } else {
+      this.container.classList.remove("active");
+    }
+
     localStorage.setItem("focus", this.isFocusMode.toString());
     document
       .querySelector(".blocks")
       .classList.toggle("__beecatalyst-focus", this.isFocusMode);
   }
 
-  onFocusModeChange(e) {
-    this.isFocusMode = e.target.checked;
+  onFocusModeChange() {
+    this.isFocusMode = !this.isFocusMode;
     this.updateFocusMode();
   }
 
   focusChange() {
-    const focus = document.querySelector("#focus");
-    focus.addEventListener("change", this.onFocusModeChange.bind(this));
+    const focus = document.querySelector("#__beecatalyst-container");
+    focus.addEventListener("click", this.onFocusModeChange.bind(this));
   }
 
   addShortcutListener() {
@@ -43,7 +46,7 @@ class Extension {
 
   addCopyButtonToTableCells() {
     const iframe = document.querySelector("iframe");
-    if (iframe) {
+    if (iframe && iframe.contentDocument) {
       const styles = document.createElement("style");
       styles.innerHTML = `
         tbody > tr > td {
@@ -105,9 +108,9 @@ class Extension {
   }
 
   init() {
-    const contentBigPage = document.querySelector(".content-big.page");
-    if (contentBigPage) {
-      contentBigPage.appendChild(this.container);
+    const problemActions = document.querySelector(".problem-actions");
+    if (problemActions) {
+      problemActions.appendChild(this.container);
       this.focusChange();
       this.isFocusMode = localStorage.getItem("focus") === "true";
       this.updateFocusMode();
