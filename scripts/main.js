@@ -1,58 +1,115 @@
-const extension = {
-  isFocusMode: false,
+class Extension {
+  constructor() {
+    this.isFocusMode = false;
+    this.container = this.createContainer();
+    this.addEventListeners();
+  }
 
-  updateFocusMode() {
-    document.querySelector("#focus").checked = this.isFocusMode;
-  },
-
-  onFocusModeChange(e) {
-    if (e.target.checked) {
-      document.querySelector(".blocks").classList.add("__beecatalyst-focus");
-      this.isFocusMode = true;
-      this.updateFocusMode();
-      localStorage.setItem("focus", "true");
-    } else {
-      document.querySelector(".blocks").classList.remove("__beecatalyst-focus");
-      this.isFocusMode = false;
-      this.updateFocusMode();
-      localStorage.setItem("focus", "false");
-    }
-  },
-
-  focusChange() {
-    const focus = document.querySelector("#focus");
-
-    focus.addEventListener("change", this.onFocusModeChange);
-  },
-
-  addShutcutListener() {
-    document.addEventListener("keydown", e => {
-      if (e.key === "q" && e.ctrlKey) {
-        this.onFocusModeChange({ target: { checked: !this.isFocusMode } });
-      }
-    });
-  },
-
-  init() {
+  createContainer() {
     const container = document.createElement("div");
     container.id = "__beecatalyst-container-beecatalyst__";
     container.innerHTML = `
       <input type="checkbox" id="focus" name="focus" />
       <label for="focus">Focus</label>
     `;
+    return container;
+  }
 
-    document.querySelector(".content-big.page").appendChild(container);
-    this.addShutcutListener();
-    this.focusChange();
-    this.onFocusModeChange({
-      target: { checked: localStorage.getItem("focus") == "true" },
+  updateFocusMode() {
+    document.querySelector("#focus").checked = this.isFocusMode;
+    localStorage.setItem("focus", this.isFocusMode.toString());
+    document
+      .querySelector(".blocks")
+      .classList.toggle("__beecatalyst-focus", this.isFocusMode);
+  }
+
+  onFocusModeChange(e) {
+    this.isFocusMode = e.target.checked;
+    this.updateFocusMode();
+  }
+
+  focusChange() {
+    const focus = document.querySelector("#focus");
+    focus.addEventListener("change", this.onFocusModeChange.bind(this));
+  }
+
+  addShortcutListener() {
+    document.addEventListener("keydown", e => {
+      if (e.key === "q" && e.ctrlKey) {
+        this.onFocusModeChange({ target: { checked: !this.isFocusMode } });
+      }
     });
-  },
-};
+  }
 
-if (
-  window.location.pathname.search("/problems/view") !== -1 ||
-  window.location.pathname.search("/challenges/view/") !== -1
-) {
+  addCopyButtonToTableCells() {
+    const iframe = document.querySelector("iframe");
+    if (iframe) {
+      const styles = document.createElement("style");
+      styles.innerHTML = `
+        tbody > tr > td {
+          position: relative;
+        }
+
+        tbody > tr > td:hover #__beecatalyst-button {
+          opacity: 1;
+          transform: scale(1.0);
+        }
+
+        #__beecatalyst-button {
+          position: absolute;
+          right: 4px;
+          top: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: end;
+          cursor: pointer;
+          font-size: 12px;
+          transition: all 200ms ease;
+          opacity: 0;
+          transform: scale(0.9);
+        }
+      `;
+      iframe.contentDocument.body.append(styles);
+
+      [...iframe.contentDocument.querySelectorAll("tbody > tr > td")].forEach(
+        td => {
+          const button = document.createElement("button");
+          button.id = "__beecatalyst-button";
+          button.innerText = "copiar";
+          td.append(button);
+          button.addEventListener("click", e => {
+            navigator.clipboard.writeText(td.querySelector("p").innerText);
+          });
+        },
+      );
+    }
+  }
+
+  addEventListeners() {
+    this.container.addEventListener(
+      "change",
+      this.onFocusModeChange.bind(this),
+    );
+    this.addShortcutListener();
+  }
+
+  init() {
+    const contentBigPage = document.querySelector(".content-big.page");
+    if (contentBigPage) {
+      contentBigPage.appendChild(this.container);
+      this.focusChange();
+      this.isFocusMode = localStorage.getItem("focus") === "true";
+      this.updateFocusMode();
+    }
+
+    this.addCopyButtonToTableCells();
+  }
+}
+
+const isProblemView = window.location.pathname.includes("/problems/view");
+const isChallengeView = window.location.pathname.includes("/challenges/view/");
+
+if (isProblemView || isChallengeView) {
+  const extension = new Extension();
   extension.init();
 }

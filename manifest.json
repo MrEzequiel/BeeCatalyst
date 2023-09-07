@@ -4,7 +4,6 @@
   "description": "BeeCatalyst: Funcionalidades e produtividade.",
   "version": "1.0",
   "action": {
-    "default_popup": "popup/popup.html",
     "default_icon": "images/icon.png"
   },
   "content_scripts": [
