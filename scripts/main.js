@@ -92,10 +92,9 @@ class CopyOutputAndInput {
     td.appendChild(button);
 
     button.addEventListener("click", () => {
-      const paragraph = td.querySelector("p");
-      if (paragraph) {
-        navigator.clipboard.writeText(paragraph.innerText);
-      }
+      const paragraphs = [...td.querySelectorAll("p")];
+      let text = paragraphs.map(paragraph => paragraph.innerText).join("\n");
+      navigator.clipboard.writeText(text);
     });
   }
 
