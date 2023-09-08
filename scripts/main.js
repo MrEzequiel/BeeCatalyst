@@ -1,8 +1,14 @@
-class Extension {
+class Focus {
   constructor() {
     this.isFocusMode = false;
     this.container = this.createContainer();
-    this.addEventListeners();
+  }
+
+  updateFocusMode() {
+    this.container.classList.toggle("active", this.isFocusMode);
+    document
+      .querySelector(".blocks")
+      .classList.toggle("__beecatalyst-focus", this.isFocusMode);
   }
 
   createContainer() {
@@ -10,20 +16,8 @@ class Extension {
     container.role = "button";
     container.id = "__beecatalyst-container";
     container.innerText = "Focus Mode";
+    container.title = "Ctrl + Q";
     return container;
-  }
-
-  updateFocusMode() {
-    if (this.isFocusMode) {
-      this.container.classList.add("active");
-    } else {
-      this.container.classList.remove("active");
-    }
-
-    localStorage.setItem("focus", this.isFocusMode.toString());
-    document
-      .querySelector(".blocks")
-      .classList.toggle("__beecatalyst-focus", this.isFocusMode);
   }
 
   onFocusModeChange() {
@@ -32,79 +26,15 @@ class Extension {
   }
 
   focusChange() {
-    const focus = document.querySelector("#__beecatalyst-container");
-    focus.addEventListener("click", this.onFocusModeChange.bind(this));
+    this.container.addEventListener("click", () => this.onFocusModeChange());
   }
 
   addShortcutListener() {
     document.addEventListener("keydown", e => {
       if (e.key === "q" && e.ctrlKey) {
-        this.onFocusModeChange({ target: { checked: !this.isFocusMode } });
+        this.onFocusModeChange();
       }
     });
-  }
-
-  addCopyButtonToTableCells() {
-    const iframe = document.querySelector("iframe");
-    if (iframe && iframe.contentDocument) {
-      const styles = document.createElement("style");
-      styles.innerHTML = `
-        tbody > tr > td {
-          position: relative;
-        }
-
-        tbody > tr > td:hover #__beecatalyst-button {
-          opacity: 1;
-          transform: scale(1.0);
-        }
-
-        #__beecatalyst-button {
-          border: #bbb solid 1px;
-          border-radius: 3px;
-          font-size: 8px;
-          padding: 4px 8px;
-          text-transform: uppercase;
-          position: absolute;
-          right: 4px;
-          top: 4px;
-          display: flex;
-          align-items: center;
-          justify-content: end;
-          cursor: pointer;
-          font-size: 12px;
-          opacity: 0;
-          transform: scale(0.9);
-          transition: all 200ms ease;
-        }
-
-        #__beecatalyst-button:hover {
-          background-color: rgb(82, 29, 105);
-          border-color: rgb(125, 44, 161);
-          color: rgb(232, 230, 227);
-        }
-      `;
-      iframe.contentDocument.body.append(styles);
-
-      [...iframe.contentDocument.querySelectorAll("tbody > tr > td")].forEach(
-        td => {
-          const button = document.createElement("button");
-          button.id = "__beecatalyst-button";
-          button.innerText = "copiar";
-          td.append(button);
-          button.addEventListener("click", e => {
-            navigator.clipboard.writeText(td.querySelector("p").innerText);
-          });
-        },
-      );
-    }
-  }
-
-  addEventListeners() {
-    this.container.addEventListener(
-      "change",
-      this.onFocusModeChange.bind(this),
-    );
-    this.addShortcutListener();
   }
 
   init() {
@@ -112,18 +42,100 @@ class Extension {
     if (problemActions) {
       problemActions.appendChild(this.container);
       this.focusChange();
-      this.isFocusMode = localStorage.getItem("focus") === "true";
-      this.updateFocusMode();
+      this.addShortcutListener();
     }
-
-    this.addCopyButtonToTableCells();
   }
 }
 
-const isProblemView = window.location.pathname.includes("/problems/view");
-const isChallengeView = window.location.pathname.includes("/challenges/view/");
+class CopyOutputAndInput {
+  constructor() {
+    this.styles = `
+      tbody > tr > td {
+        position: relative;
+      }
 
-if (isProblemView || isChallengeView) {
-  const extension = new Extension();
-  extension.init();
+      tbody > tr > td:hover .beecatalyst-button {
+        opacity: 1;
+        transform: scale(1.0);
+      }
+
+      .beecatalyst-button {
+        border: #bbb solid 1px;
+        border-radius: 3px;
+        font-size: 12px;
+        padding: 4px 8px;
+        text-transform: uppercase;
+        position: absolute;
+        right: 4px;
+        top: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        cursor: pointer;
+        opacity: 0;
+        transform: scale(0.9);
+        transition: all 200ms ease;
+      }
+
+      .beecatalyst-button:hover {
+        background-color: rgb(82, 29, 105);
+        border-color: rgb(125, 44, 161);
+        color: rgb(232, 230, 227);
+      }
+    `;
+  }
+
+  addCopyButtonToTableCell(td) {
+    const button = document.createElement("button");
+    button.classList.add("beecatalyst-button");
+    button.innerText = "Copiar";
+    td.appendChild(button);
+
+    button.addEventListener("click", () => {
+      const paragraph = td.querySelector("p");
+      if (paragraph) {
+        navigator.clipboard.writeText(paragraph.innerText);
+      }
+    });
+  }
+
+  addStylesToDocument(iframeDocument) {
+    const stylesElement = document.createElement("style");
+    stylesElement.innerHTML = this.styles;
+    iframeDocument.body.appendChild(stylesElement);
+  }
+
+  addCopyButtonsToTableCells(iframeDocument) {
+    const tableCells = iframeDocument.querySelectorAll("tbody > tr > td");
+    tableCells.forEach(td => {
+      this.addCopyButtonToTableCell(td);
+    });
+  }
+
+  init() {
+    const iframe = document.querySelector("iframe");
+    if (iframe && iframe.contentDocument) {
+      const iframeDocument = iframe.contentDocument;
+      this.addStylesToDocument(iframeDocument);
+      this.addCopyButtonsToTableCells(iframeDocument);
+    }
+  }
 }
+
+class Extension {
+  init() {
+    const isProblemView = window.location.pathname.includes("/problems/view");
+    const isChallengeView =
+      window.location.pathname.includes("/challenges/view/");
+
+    if (isProblemView || isChallengeView) {
+      const focus = new Focus();
+      const copyOutputAndInput = new CopyOutputAndInput();
+      focus.init();
+      copyOutputAndInput.init();
+    }
+  }
+}
+
+const extension = new Extension();
+extension.init();
