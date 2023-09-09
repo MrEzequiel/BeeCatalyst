@@ -112,12 +112,13 @@ class CopyOutputAndInput {
   }
 
   init() {
-    const iframe = document.querySelector("iframe");
-    if (iframe && iframe.contentDocument) {
+    window.addEventListener("load", () => {
+      const iframe = document.querySelector("iframe");
+      if (!iframe) return;
       const iframeDocument = iframe.contentDocument;
       this.addStylesToDocument(iframeDocument);
       this.addCopyButtonsToTableCells(iframeDocument);
-    }
+    });
   }
 }
 
